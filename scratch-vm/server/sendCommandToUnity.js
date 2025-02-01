@@ -1,0 +1,52 @@
+// ✅ ブラウザで実行されないようにする
+if (typeof window !== "undefined") {
+    console.error("This script should not run in the browser!");
+    throw new Error("sendCommandToUnity.js should only run in Node.js");
+}
+
+const WebSocket = require("ws");
+
+// WebSocket サーバーを立ち上げる
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on("connection", (ws) => {
+    console.log("Client connected");
+
+    ws.on("message", (message) => {
+        console.log("Received:", message);
+        // ここで Unity にメッセージを送信する処理を追加
+        sendToUnity(message);
+    });
+
+    ws.on("close", () => {
+        console.log("Client disconnected");
+    });
+});
+
+console.log("WebSocket server is running on ws://localhost:8080");
+
+function sendToUnity(message) {
+    // Unity にメッセージを送信する処理
+    if (unitySocket) {
+        console.log("Sending to Unity:", message);
+        unitySocket.send(message);
+    }
+}
+
+let unitySocket = null;
+
+// Unity への接続処理
+const unityWss = new WebSocket.Server({ port: 9090 });
+unityWss.on("connection", (ws) => {
+    console.log("Unity connected");
+    unitySocket = ws;
+});
+
+// Unity へのコマンド送信
+function sendCommandToUnity(message) {
+    if (unitySocket) {
+        unitySocket.send(JSON.stringify(message));
+    } else {
+        console.log("Unity is not connected.");
+    }
+}
