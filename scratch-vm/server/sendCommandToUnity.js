@@ -33,6 +33,10 @@ unityWss.on("connection", (ws) => {
     console.log("Unity connected");
     unitySocket = ws;
 });
+unityWss.on("close", () => {
+    console.log("Unity disconnected");
+    unitySocket = null;
+});
 
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
