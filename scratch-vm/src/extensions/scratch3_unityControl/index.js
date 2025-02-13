@@ -31,7 +31,7 @@ socket.onclose = () => {
 // メッセージをWebSocketサーバーに送信する関数
 function sendMessage(message) {
     if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ text: message }));
+        socket.send(JSON.stringify(message));
         console.log("Message sent:", message);
     } else {
         console.error("WebSocket is not open");
@@ -153,6 +153,17 @@ class UnityExtension {
                     blockType: BlockType.BOOLEAN, // ✅ true / false を返す
                     text: "バリアを展開している",
                 },
+                {
+                    opcode: "ifUnity",
+                    blockType: BlockType.CONDITIONAL, // ✅ 条件分岐
+                    text: "Unity に [CONDITION] を実行させる",
+                    arguments: {
+                        CONDITION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "attack",
+                        },
+                    },
+                },
             ],
             menus: {},
         };
@@ -161,27 +172,32 @@ class UnityExtension {
     moveForward(args) {
         const step = Cast.toNumber(args.STEP);
         log.log(`move forward ${step}`);
-        sendMessage({ action: "move", step: step });
+        sendMessage({ action: "move", args: step });
     }
 
     turnUp() {
         log.log("turn Up");
-        sendMessage({ action: "rotate", angle: 0 });
+        sendMessage({ action: "rotate", args: 0 });
     }
 
     turnDown() {
         log.log("turn Down");
-        sendMessage({ action: "rotate", angle: 180 });
+        sendMessage({ action: "rotate", args: 180 });
     }
 
     turnRight() {
         log.log("turn Right");
-        sendMessage({ action: "rotate", angle: 90 });
+        sendMessage({ action: "rotate", args: 90 });
     }
 
     turnLeft() {
         log.log("turn Left");
-        sendMessage({ action: "rotate", angle: 270 });
+        sendMessage({ action: "rotate", args: 270 });
+    }
+
+    // 少し設定が難しい気がする
+    ifUnity(args) {
+        sendMessage({ action: "if", args: args.CONDITION });
     }
 
     isMyHealthGreaterThan(args) {

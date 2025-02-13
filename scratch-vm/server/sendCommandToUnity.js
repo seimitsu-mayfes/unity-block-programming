@@ -41,7 +41,12 @@ unityWss.on("close", () => {
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
     if (unitySocket) {
-        unitySocket.send(JSON.stringify(message));
+        if (message.toString("hex").startsWith("7b")) {
+            unitySocket.send(JSON.stringify(message));
+        } else {
+            console.log("Message from Unity:", message.toString("utf8"));
+            //ここにUnityからのメッセージを受け取った時の処理を追加
+        }
     } else {
         console.log("Unity is not connected.");
     }
