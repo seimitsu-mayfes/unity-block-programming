@@ -37,7 +37,7 @@ unityWss.on("connection", (ws) => {
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
     if (unitySocket) {
-        unitySocket.send(message);
+        unitySocket.send(JSON.stringify(message));
     } else {
         console.log("Unity is not connected.");
     }

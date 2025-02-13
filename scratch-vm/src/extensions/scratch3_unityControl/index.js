@@ -15,7 +15,7 @@ const socket = new WebSocket("ws://localhost:8080"); // サーバーへの接続
 // WebSocket が開いたときの処理
 socket.onopen = () => {
     console.log("WebSocket connected");
-    socket.send("Hello Unity"); // メッセージ送信
+    socket.send(JSON.stringify({ text: "Hello Unity" })); // メッセージ送信
 };
 
 // サーバーからメッセージを受け取る
