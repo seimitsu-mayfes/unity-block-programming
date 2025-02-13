@@ -13,7 +13,7 @@ wss.on("connection", (ws) => {
     console.log("Client connected");
 
     ws.on("message", (message) => {
-        console.log("Received:", message);
+        console.log("Received from Scratch:", message);
         // ここで Unity にメッセージを送信する処理を追加
         sendCommandToUnity(message);
     });
@@ -32,21 +32,22 @@ const unityWss = new WebSocket.Server({ port: 9090 });
 unityWss.on("connection", (ws) => {
     console.log("Unity connected");
     unitySocket = ws;
-});
-unityWss.on("close", () => {
-    console.log("Unity disconnected");
-    unitySocket = null;
+
+    ws.on("message", (message) => {
+        console.log("Received from Unity:", message);
+        // ここで Scratch にメッセージを送信する処理を追加
+    });
+
+    ws.on("close", () => {
+        console.log("Unity disconnected");
+        unitySocket = null;
+    });
 });
 
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
     if (unitySocket) {
-        if (message.toString("hex").startsWith("7b")) {
-            unitySocket.send(JSON.stringify(message));
-        } else {
-            console.log("Message from Unity:", message.toString("utf8"));
-            //ここにUnityからのメッセージを受け取った時の処理を追加
-        }
+        unitySocket.send(JSON.stringify(message));
     } else {
         console.log("Unity is not connected.");
     }

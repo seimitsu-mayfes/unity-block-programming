@@ -41,6 +41,9 @@ function sendMessage(message) {
 class UnityExtension {
     constructor(runtime) {
         this.runtime = runtime;
+        this.myhealth = 100;
+        this.enemyhealth = 100;
+        this.barrierActive = false;
     }
     getInfo() {
         return {
@@ -129,7 +132,7 @@ class UnityExtension {
                 {
                     opcode: "isEnemysHealthLessThan",
                     blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "自分のHP < [VALUE]",
+                    text: "敵のHP > [VALUE]",
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
@@ -140,7 +143,7 @@ class UnityExtension {
                 {
                     opcode: "isEnemysHealthLessThan",
                     blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "自分のHP < [VALUE]",
+                    text: "敵のHP < [VALUE]",
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
@@ -201,19 +204,19 @@ class UnityExtension {
     }
 
     isMyHealthGreaterThan(args) {
-        return this.health > args.VALUE;
+        return this.myhealth > args.VALUE;
     }
 
     isMyHealthLessThan(args) {
-        return this.health < args.VALUE;
+        return this.myhealth < args.VALUE;
     }
 
     isEnemysHealthGreaterThan(args) {
-        return this.health > args.VALUE;
+        return this.enemyhealth > args.VALUE;
     }
 
     isEnemysHealthLessThan(args) {
-        return this.health < args.VALUE;
+        return this.enemyhealth < args.VALUE;
     }
 
     isMyBarrierActive() {
