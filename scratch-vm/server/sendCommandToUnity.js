@@ -15,7 +15,7 @@ wss.on("connection", (ws) => {
     ws.on("message", (message) => {
         console.log("Received:", message);
         // ここで Unity にメッセージを送信する処理を追加
-        sendToUnity(message);
+        sendCommandToUnity(message);
     });
 
     ws.on("close", () => {
@@ -24,14 +24,6 @@ wss.on("connection", (ws) => {
 });
 
 console.log("WebSocket server is running on ws://localhost:8080");
-
-function sendToUnity(message) {
-    // Unity にメッセージを送信する処理
-    if (unitySocket) {
-        console.log("Sending to Unity:", message);
-        unitySocket.send(message);
-    }
-}
 
 let unitySocket = null;
 
