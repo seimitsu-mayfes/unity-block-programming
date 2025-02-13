@@ -28,12 +28,23 @@ socket.onclose = () => {
     console.log("Connection closed");
 };
 
-function sendCommandToUnityIfNodeEnv(args) {
-    if (typeof window === "undefined") {
-        const sendCommandToUnity = require("../../../server/sendCommandToUnity.js");
-        sendCommandToUnity(args);
+// function sendCommandToUnityIfNodeEnv(args) {
+//     if (typeof window === "undefined") {
+//         const sendCommandToUnity = require("../../../server/sendCommandToUnity.js");
+//         sendCommandToUnity(args);
+//         console.log("sent command to Unity");
+//     } else {
+//         console.warn("sendCommandToUnity cannot run in the browser");
+//     }
+// }
+
+// メッセージをWebSocketサーバーに送信する関数
+function sendMessage(message) {
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ text: message }));
+        console.log("Message sent:", message);
     } else {
-        console.warn("sendCommandToUnity cannot run in the browser");
+        console.error("WebSocket is not open");
     }
 }
 
@@ -160,27 +171,32 @@ class UnityExtension {
     moveForward(args) {
         const step = Cast.toNumber(args.STEP);
         log.log(`move forward ${step}`);
-        sendCommandToUnityIfNodeEnv({ action: "move", step: args.STEP });
+        // sendCommandToUnityIfNodeEnv({ action: "move", step: args.STEP });
+        sendMessage({ action: "move", step: step });
     }
 
     turnUp() {
         log.log("turn Up");
-        sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 0 });
+        // sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 0 });
+        sendMessage({ action: "rotate", angle: 0 });
     }
 
     turnDown() {
         log.log("turn Down");
-        sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 180 });
+        // sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 180 });
+        sendMessage({ action: "rotate", angle: 180 });
     }
 
     turnRight() {
         log.log("turn Right");
-        sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 90 });
+        // sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 90 });
+        sendMessage({ action: "rotate", angle: 90 });
     }
 
     turnLeft() {
         log.log("turn Left");
-        sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 270 });
+        // sendCommandToUnityIfNodeEnv({ action: "rotate", angle: 270 });
+        sendMessage({ action: "rotate", angle: 270 });
     }
 
     isMyHealthGreaterThan(args) {
