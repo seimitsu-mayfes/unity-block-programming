@@ -34,8 +34,10 @@ unityWss.on("connection", (ws) => {
     unitySocket = ws;
 
     ws.on("message", (message) => {
-        console.log("Received from Unity:", message);
+        let decodedmessage = message.toString("utf-8");
         // ここで Scratch にメッセージを送信する処理を追加
+        let messageObj = JSON.parse(decodedmessage);
+        console.log("Received from Unity:", messageObj);
     });
 
     ws.on("close", () => {
@@ -43,6 +45,8 @@ unityWss.on("connection", (ws) => {
         unitySocket = null;
     });
 });
+
+console.log("Unity WebSocket server is running on ws://localhost:9090");
 
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
