@@ -11,9 +11,12 @@ const menuIconURI =
 
 // クライアントサイド (ブラウザ環境)
 const socket = new WebSocket("ws://localhost:8080"); // サーバーへの接続
-const unitySocket = new WebSocket("ws://localhost:9090"); // Unity への接続
 
-let messageObj = {};
+let messageObj = {
+    myhealth: 100,
+    enemyhealth: 100,
+    barrierActive: false,
+};
 
 // WebSocket が開いたときの処理
 socket.onopen = () => {
@@ -23,19 +26,16 @@ socket.onopen = () => {
 
 // サーバーからメッセージを受け取る
 socket.onmessage = (event) => {
-    console.log("Message from server:", event.data);
+    let temp_messageObj = JSON.parse(event.data);
+    messageObj.myhealth = temp_messageObj.myhealth;
+    messageObj.enemyhealth = temp_messageObj.enemyhealth;
+    messageObj.barrierActive = temp_messageObj.barrierActive;
+    console.log("Message from server:", temp_messageObj);
 };
 
 // WebSocket が閉じられたときの処理
 socket.onclose = () => {
     console.log("Connection closed");
-};
-
-// Unity からのメッセージを受け取る
-unitySocket.onmessage = (event) => {
-    let decodedmessage = event.data.toString("utf-8");
-    messageObj = JSON.parse(decodedmessage);
-    console.log("Message from Unity:", event.data);
 };
 
 // メッセージをWebSocketサーバーに送信する関数
