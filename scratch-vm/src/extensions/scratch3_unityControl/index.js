@@ -26,15 +26,20 @@ socket.onopen = () => {
 
 // サーバーからメッセージを受け取る
 socket.onmessage = (event) => {
-    // let decodedmessage = event.data.toString("utf-8");
-    // let temp_messageObj = JSON.parse(decodedmessage);
-    // messageObj.myhealth = temp_messageObj.myhealth;
-    // messageObj.enemyhealth = temp_messageObj.enemyhealth;
-    // messageObj.barrierActive = temp_messageObj.barrierActive;
-    const uint8Array = new Uint8Array(event.data);
-    const decodedmessage = new TextDecoder().decode(uint8Array);
-    const temp_messageObj = JSON.parse(decodedmessage);
-    // console.log("Message from server:", temp_messageObj);
+    const jsonData = JSON.parse(event.data);
+    const byteArray = new Uint8Array(jsonData.data);
+    // const uint8Array = new Uint8Array(event.data);
+    const decodedMessage = new TextDecoder().decode(byteArray);
+    console.log("Message from server:", decodedMessage);
+    try {
+        const temp_messageObj = JSON.parse(decodedMessage);
+        messageObj.myhealth = temp_messageObj.myhealth;
+        messageObj.enemyhealth = temp_messageObj.enemyhealth;
+        messageObj.barrierActive = temp_messageObj.barrierActive;
+        console.log("Message from Unity:", temp_messageObj);
+    } catch (error) {
+        console.error("Error parsing JSON:", error);
+    }
 };
 
 // WebSocket が閉じられたときの処理
@@ -55,9 +60,6 @@ function sendMessage(message) {
 class UnityExtension {
     constructor(runtime) {
         this.runtime = runtime;
-        this.myhealth = messageObj.myhealth;
-        this.enemyhealth = messageObj.enemyhealth;
-        this.barrierActive = messageObj.barrierActive;
     }
     getInfo() {
         return {
@@ -122,13 +124,24 @@ class UnityExtension {
                     },
                 },
                 {
+                    opcode: "ifUnity",
+                    blockType: BlockType.CONDITIONAL, // ✅ 条件分岐
+                    text: "もし [CONDITION] なら",
+                    arguments: {
+                        CONDITION: {
+                            type: ArgumentType.BOOLEAN,
+                            defaultValue: true,
+                        },
+                    },
+                },
+                {
                     opcode: "isMyHealthGreaterThan",
                     blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "自分のHP > [VALUE]",
+                    text: "自分のHP ≧ [VALUE]",
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 50,
+                            defaultValue: 100,
                         },
                     },
                 },
@@ -139,18 +152,18 @@ class UnityExtension {
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 50,
+                            defaultValue: 100,
                         },
                     },
                 },
                 {
                     opcode: "isEnemysHealthLessThan",
                     blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "敵のHP > [VALUE]",
+                    text: "敵のHP ≧ [VALUE]",
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 50,
+                            defaultValue: 100,
                         },
                     },
                 },
@@ -161,7 +174,7 @@ class UnityExtension {
                     arguments: {
                         VALUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 50,
+                            defaultValue: 100,
                         },
                     },
                 },
@@ -171,26 +184,9 @@ class UnityExtension {
                     text: "バリアを展開している",
                 },
                 {
-                    opcode: "ifUnity",
-                    blockType: BlockType.CONDITIONAL, // ✅ 条件分岐
-                    text: "Unity に [CONDITION] を実行させる",
-                    arguments: {
-                        CONDITION: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "attack",
-                        },
-                    },
-                },
-                {
                     opcode: "debug",
                     blockType: BlockType.COMMAND,
-                    text: "デバッグ [TEXT]",
-                    arguments: {
-                        TEXT: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: this.myhealth,
-                        },
-                    },
+                    text: "debug",
                 },
             ],
             menus: {},
@@ -223,29 +219,48 @@ class UnityExtension {
         sendMessage({ action: "rotate", args: 270 });
     }
 
-    // 少し設定が難しい気がする
     ifUnity(args) {
-        sendMessage({ action: "if", args: args.CONDITION });
+        if (args.CONDITION) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     isMyHealthGreaterThan(args) {
-        return this.myhealth > args.VALUE;
+        const result = messageObj.myhealth >= args.VALUE;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
     }
 
     isMyHealthLessThan(args) {
-        return this.myhealth < args.VALUE;
+        const result = messageObj.myhealth < args.VALUE;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
     }
 
     isEnemysHealthGreaterThan(args) {
-        return this.enemyhealth > args.VALUE;
+        const result = messageObj.enemyhealth >= args.VALUE;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
     }
 
     isEnemysHealthLessThan(args) {
-        return this.enemyhealth < args.VALUE;
+        const result = messageObj.enemyhealth < args.VALUE;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
     }
 
     isMyBarrierActive() {
-        return this.barrierActive;
+        const result = messageObj.barrierActive;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
+    }
+
+    debug() {
+        log.log("myhealth:", messageObj.myhealth);
+        log.log("enemyhealth:", messageObj.enemyhealth);
+        log.log("barrierActive:", messageObj.barrierActive);
     }
 }
 
