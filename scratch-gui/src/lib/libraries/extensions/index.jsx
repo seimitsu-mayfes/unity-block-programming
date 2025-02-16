@@ -4,29 +4,6 @@ import { FormattedMessage } from "react-intl";
 import unityControlIconURL from "./unityControl/unity-logo.png";
 import unityControlInsetIconURL from "./unityControl/unity-logo-small.png";
 
-// const extensions = [
-//     {
-//         name: (
-//             <FormattedMessage
-//                 defaultMessage="Unity Control"
-//                 description="Name for the 'Unity Control' extension"
-//                 id="gui.extension.unityControl.name"
-//             />
-//         ),
-//         extensionId: "unityControl", // 拡張IDが一致しているか確認
-//         iconURL: unityControlIconURL,
-//         insetIconURL: unityControlInsetIconURL,
-//         description: (
-//             <FormattedMessage
-//                 defaultMessage="Control Unity from Scratch."
-//                 description="Description for the 'Unity Control' extension"
-//                 id="gui.extension.unityControl.description"
-//             />
-//         ),
-//         featured: true,
-//     },
-// ];
-
 import musicIconURL from "./music/music.png";
 import musicInsetIconURL from "./music/music-small.svg";
 
@@ -357,7 +334,7 @@ export default [
         insetIconURL: unityControlInsetIconURL,
         description: (
             <FormattedMessage
-                defaultMessage="Control Unity from Scratch."
+                defaultMessage="ScratchからUnityを制御します。"
                 description="Description for the 'Unity Control' extension"
                 id="gui.extension.unityControl.description"
             />

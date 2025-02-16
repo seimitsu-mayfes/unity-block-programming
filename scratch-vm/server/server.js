@@ -7,19 +7,22 @@ if (typeof window !== "undefined") {
 const WebSocket = require("ws");
 
 // WebSocket サーバーを立ち上げる
+let scratchSocket = null;
 const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on("connection", (ws) => {
     console.log("Client connected");
+    scratchSocket = ws;
 
     ws.on("message", (message) => {
-        console.log("Received:", message);
+        console.log("Received from Scratch:", message);
         // ここで Unity にメッセージを送信する処理を追加
         sendCommandToUnity(message);
     });
 
     ws.on("close", () => {
         console.log("Client disconnected");
+        scratchSocket = null;
     });
 });
 
@@ -32,7 +35,21 @@ const unityWss = new WebSocket.Server({ port: 9090 });
 unityWss.on("connection", (ws) => {
     console.log("Unity connected");
     unitySocket = ws;
+
+    ws.on("message", (message) => {
+        sendCommandToScratch(message);
+        let decodedmessage = message.toString("utf-8");
+        let messageObj = JSON.parse(decodedmessage);
+        console.log("Received from Unity:", messageObj);
+    });
+
+    ws.on("close", () => {
+        console.log("Unity disconnected");
+        unitySocket = null;
+    });
 });
+
+console.log("Unity WebSocket server is running on ws://localhost:9090");
 
 // Unity へのコマンド送信
 function sendCommandToUnity(message) {
@@ -40,5 +57,13 @@ function sendCommandToUnity(message) {
         unitySocket.send(JSON.stringify(message));
     } else {
         console.log("Unity is not connected.");
+    }
+}
+
+function sendCommandToScratch(message) {
+    if (scratchSocket) {
+        scratchSocket.send(JSON.stringify(message));
+    } else {
+        console.log("Scratch is not connected.");
     }
 }
