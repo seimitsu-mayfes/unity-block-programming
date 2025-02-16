@@ -61,6 +61,13 @@ class UnityExtension {
     constructor(runtime) {
         this.runtime = runtime;
     }
+
+    getPrimitives() {
+        return {
+            control_if: this.if,
+        };
+    }
+
     getInfo() {
         return {
             id: "unityExtension",
@@ -219,11 +226,11 @@ class UnityExtension {
         sendMessage({ action: "rotate", args: 270 });
     }
 
-    ifUnity(args) {
-        if (args.CONDITION) {
-            return true;
-        } else {
-            return false;
+    ifUnity(args, util) {
+        const condition = Cast.toBoolean(args.CONDITION);
+        console.log(condition); // 条件を表示
+        if (condition) {
+            util.startBranch(1, false);
         }
     }
 
