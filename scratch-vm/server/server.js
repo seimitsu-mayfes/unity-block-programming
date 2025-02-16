@@ -12,11 +12,11 @@ const wss = new WebSocket.Server({ port: 8080 });
 
 wss.on("connection", (ws) => {
     console.log("Client connected");
+    scratchSocket = ws;
 
     ws.on("message", (message) => {
         console.log("Received from Scratch:", message);
         // ここで Unity にメッセージを送信する処理を追加
-        scratchSocket = ws;
         sendCommandToUnity(message);
     });
 
@@ -37,10 +37,9 @@ unityWss.on("connection", (ws) => {
     unitySocket = ws;
 
     ws.on("message", (message) => {
+        sendCommandToScratch(message);
         let decodedmessage = message.toString("utf-8");
-        // ここで Scratch にメッセージを送信する処理を追加
         let messageObj = JSON.parse(decodedmessage);
-        scratchSocket.send(messageObj);
         console.log("Received from Unity:", messageObj);
     });
 
@@ -58,5 +57,13 @@ function sendCommandToUnity(message) {
         unitySocket.send(JSON.stringify(message));
     } else {
         console.log("Unity is not connected.");
+    }
+}
+
+function sendCommandToScratch(message) {
+    if (scratchSocket) {
+        scratchSocket.send(JSON.stringify(message));
+    } else {
+        console.log("Scratch is not connected.");
     }
 }

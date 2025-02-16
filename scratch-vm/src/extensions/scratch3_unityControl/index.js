@@ -26,11 +26,15 @@ socket.onopen = () => {
 
 // サーバーからメッセージを受け取る
 socket.onmessage = (event) => {
-    let temp_messageObj = JSON.parse(event.data);
-    messageObj.myhealth = temp_messageObj.myhealth;
-    messageObj.enemyhealth = temp_messageObj.enemyhealth;
-    messageObj.barrierActive = temp_messageObj.barrierActive;
-    console.log("Message from server:", temp_messageObj);
+    // let decodedmessage = event.data.toString("utf-8");
+    // let temp_messageObj = JSON.parse(decodedmessage);
+    // messageObj.myhealth = temp_messageObj.myhealth;
+    // messageObj.enemyhealth = temp_messageObj.enemyhealth;
+    // messageObj.barrierActive = temp_messageObj.barrierActive;
+    const uint8Array = new Uint8Array(event.data);
+    const decodedmessage = new TextDecoder().decode(uint8Array);
+    const temp_messageObj = JSON.parse(decodedmessage);
+    // console.log("Message from server:", temp_messageObj);
 };
 
 // WebSocket が閉じられたときの処理
