@@ -13,7 +13,9 @@ const menuIconURI =
 const socket = new WebSocket("ws://localhost:8080"); // サーバーへの接続
 
 let messageObj = {
+    mypositon: { x: 1.0, y: 2.0, z: 3.0 },
     myhealth: 100,
+    enemypositon: { x: 4.0, y: 5.0, z: 6.0 },
     enemyhealth: 100,
     barrierActive: false,
 };
@@ -131,6 +133,39 @@ class UnityExtension {
                     },
                 },
                 {
+                    opcode: "rotateX",
+                    blockType: BlockType.COMMAND,
+                    text: "x軸方向に [ANGLE] 度回転",
+                    arguments: {
+                        ANGLE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90,
+                        },
+                    },
+                },
+                {
+                    opcode: "rotateY",
+                    blockType: BlockType.COMMAND,
+                    text: "y軸方向に [ANGLE] 度回転",
+                    arguments: {
+                        ANGLE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90,
+                        },
+                    },
+                },
+                {
+                    opcode: "rotateZ",
+                    blockType: BlockType.COMMAND,
+                    text: "z軸方向に [ANGLE] 度回転",
+                    arguments: {
+                        ANGLE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90,
+                        },
+                    },
+                },
+                {
                     opcode: "ifUnity",
                     blockType: BlockType.CONDITIONAL, // ✅ 条件分岐
                     text: "もし [CONDITION] なら",
@@ -164,7 +199,7 @@ class UnityExtension {
                     },
                 },
                 {
-                    opcode: "isEnemysHealthLessThan",
+                    opcode: "isEnemysHealthGreaterThan",
                     blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
                     text: "敵のHP ≧ [VALUE]",
                     arguments: {
@@ -189,6 +224,22 @@ class UnityExtension {
                     opcode: "isMyBarrierActive",
                     blockType: BlockType.BOOLEAN, // ✅ true / false を返す
                     text: "バリアを展開している",
+                },
+                {
+                    opcode: "isNearby",
+                    blockType: BlockType.BOOLEAN, // ✅ true / false を返す
+                    text: "半径 [VALUE] 以内に敵がいる",
+                    arguments: {
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 100,
+                        },
+                    },
+                },
+                {
+                    opcode: "splitShot",
+                    blockType: BlockType.BOOLEAN, // ✅ true / false を返す
+                    text: "弾を分裂させる",
                 },
                 {
                     opcode: "debug",
@@ -224,6 +275,24 @@ class UnityExtension {
     turnLeft() {
         log.log("turn Left");
         sendMessage({ action: "rotate", args: 270 });
+    }
+
+    rotateX(args) {
+        const angle = Cast.toNumber(args.ANGLE);
+        log.log(`rotate X ${angle}`);
+        sendMessage({ action: "rotate_x", args: angle });
+    }
+
+    rotateY(args) {
+        const angle = Cast.toNumber(args.ANGLE);
+        log.log(`rotate Y ${angle}`);
+        sendMessage({ action: "rotate_y", args: angle });
+    }
+
+    rotateZ(args) {
+        const angle = Cast.toNumber(args.ANGLE);
+        log.log(`rotate Z ${angle}`);
+        sendMessage({ action: "rotate_z", args: angle });
     }
 
     ifUnity(args, util) {
@@ -264,8 +333,34 @@ class UnityExtension {
         return result; // 結果を返す
     }
 
+    isNearby(args) {
+        const dx = Math.pow(
+            messageObj.mypositon.x - messageObj.enemypositon.x,
+            2
+        );
+        const dy = Math.pow(
+            messageObj.mypositon.y - messageObj.enemypositon.y,
+            2
+        );
+        const dz = Math.pow(
+            messageObj.mypositon.z - messageObj.enemypositon.z,
+            2
+        );
+        const distance = Math.sqrt(dx + dy + dz);
+        const result = distance <= args.VALUE;
+        console.log(result); // 結果を表示
+        return result; // 結果を返す
+    }
+
+    splitShot() {
+        log.log("splitShot");
+        sendMessage({ action: "splitShot" });
+    }
+
     debug() {
+        log.log("mypositon:", messageObj.mypositon);
         log.log("myhealth:", messageObj.myhealth);
+        log.log("enemypositon:", messageObj.enemypositon);
         log.log("enemyhealth:", messageObj.enemyhealth);
         log.log("barrierActive:", messageObj.barrierActive);
     }

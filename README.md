@@ -18,11 +18,11 @@ npm install
 
 # 実行方法
 
-scratch-vm/server に移動して sendCommandToUnity.js を実行
+scratch-vm/server に移動して server.js を実行
 
 ```bash
 cd scratch-vm/server
-node sendCommandToUnity.js
+node server.js
 ```
 
 scratch-gui に移動して起動
