@@ -13,9 +13,9 @@ const menuIconURI =
 const socket = new WebSocket("ws://localhost:8080"); // サーバーへの接続
 
 let messageObj = {
-    mypositon: { x: 1.0, y: 2.0, z: 3.0 },
+    myposition: { x: 1.0, y: 2.0, z: 3.0 },
     myhealth: 100,
-    enemypositon: { x: 4.0, y: 5.0, z: 6.0 },
+    enemyposition: { x: 4.0, y: 5.0, z: 6.0 },
     enemyhealth: 100,
     barrierActive: false,
 };
@@ -35,7 +35,9 @@ socket.onmessage = (event) => {
     console.log("Message from server:", decodedMessage);
     try {
         const temp_messageObj = JSON.parse(decodedMessage);
+        messageObj.myposition = temp_messageObj.myposition;
         messageObj.myhealth = temp_messageObj.myhealth;
+        messageObj.enemyposition = temp_messageObj.enemyposition;
         messageObj.enemyhealth = temp_messageObj.enemyhealth;
         messageObj.barrierActive = temp_messageObj.barrierActive;
         console.log("Message from Unity:", temp_messageObj);
@@ -62,6 +64,9 @@ function sendMessage(message) {
 class UnityExtension {
     constructor(runtime) {
         this.runtime = runtime;
+        this.lastTriggered = false;
+        this.startMonitoringNearby();
+        this.eventQueue = [];
     }
 
     getPrimitives() {
@@ -238,8 +243,36 @@ class UnityExtension {
                 },
                 {
                     opcode: "splitShot",
-                    blockType: BlockType.BOOLEAN, // ✅ true / false を返す
+                    blockType: BlockType.COMMAND,
                     text: "弾を分裂させる",
+                },
+                {
+                    opcode: "whenEnemyNearby",
+                    blockType: BlockType.HAT,
+                    text: "半径 [VALUE] 以内に敵がいたら",
+                    arguments: {
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 100,
+                        },
+                    },
+                },
+                {
+                    opcode: "wait",
+                    blockType: BlockType.COMMAND,
+                    text: " [VALUE] 秒待つ",
+                    arguments: {
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1,
+                        },
+                    },
+                },
+                {
+                    opcode: "sendEvents",
+                    blockType: BlockType.COMMAND,
+                    text: "イベントを送信",
+                    func: "sendEvents"
                 },
                 {
                     opcode: "debug",
@@ -280,19 +313,28 @@ class UnityExtension {
     rotateX(args) {
         const angle = Cast.toNumber(args.ANGLE);
         log.log(`rotate X ${angle}`);
-        sendMessage({ action: "rotate_x", args: angle });
+        this.eventQueue.push({
+            Action: "rotate_x",
+            Args: angle
+        });
     }
 
     rotateY(args) {
         const angle = Cast.toNumber(args.ANGLE);
         log.log(`rotate Y ${angle}`);
-        sendMessage({ action: "rotate_y", args: angle });
+        this.eventQueue.push({
+            Action: "rotate_y",
+            Args: angle
+        });
     }
 
     rotateZ(args) {
         const angle = Cast.toNumber(args.ANGLE);
         log.log(`rotate Z ${angle}`);
-        sendMessage({ action: "rotate_z", args: angle });
+        this.eventQueue.push({
+            Action: "rotate_z",
+            Args: angle
+        });
     }
 
     ifUnity(args, util) {
@@ -335,15 +377,15 @@ class UnityExtension {
 
     isNearby(args) {
         const dx = Math.pow(
-            messageObj.mypositon.x - messageObj.enemypositon.x,
+            messageObj.myposition.x - messageObj.enemyposition.x,
             2
         );
         const dy = Math.pow(
-            messageObj.mypositon.y - messageObj.enemypositon.y,
+            messageObj.myposition.y - messageObj.enemyposition.y,
             2
         );
         const dz = Math.pow(
-            messageObj.mypositon.z - messageObj.enemypositon.z,
+            messageObj.myposition.z - messageObj.enemyposition.z,
             2
         );
         const distance = Math.sqrt(dx + dy + dz);
@@ -354,13 +396,67 @@ class UnityExtension {
 
     splitShot() {
         log.log("splitShot");
-        sendMessage({ action: "splitShot" });
+        this.eventQueue.push({
+            Action: "splitShot",
+        });
+    }
+
+    // HATブロックで実行される
+    whenEnemyNearby(args) {
+        const threshold = parseFloat(args.VALUE);
+        // 距離の計算
+        const dx = messageObj.myposition.x - messageObj.enemyposition.x;
+        const dy = messageObj.myposition.y - messageObj.enemyposition.y;
+        const dz = messageObj.myposition.z - messageObj.enemyposition.z;
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        return distance <= threshold;
+    }
+
+    startMonitoringNearby() {
+        setInterval(() => {
+            const hats =  this.runtime._hats["unityExtension.whenEnemyNearby"];
+            if (!hats) return;
+    
+            for (const hat of hats) {
+                const args = hat.block.fields; // 入力されたVALUE値
+                const threshold = parseFloat(args.VALUE.value);
+    
+                // 距離の計算
+                const dx = messageObj.myposition.x - messageObj.enemyposition.x;
+                const dy = messageObj.myposition.y - messageObj.enemyposition.y;
+                const dz = messageObj.myposition.z - messageObj.enemyposition.z;
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    
+                if (distance <= threshold) {
+                    this.runtime.startHats('myExtension_whenEnemyNearby', {
+                        DISTANCE: threshold
+                    });
+                }
+            }
+        }, 17);
+    }
+
+    wait(args) {
+        const second = Cast.toNumber(args.VALUE) * 1000;
+        log.log(`wait ${second}`);
+        this.eventQueue.push({
+            Action: "wait",
+            Args: second
+        })
+    }
+
+    sendEvents() {
+        const payload = {
+            events: this.eventQueue
+        };
+        sendMessage(payload);
+        this.eventQueue = []; // キューをクリア
     }
 
     debug() {
-        log.log("mypositon:", messageObj.mypositon);
+        log.log("myposition:", messageObj.myposition);
         log.log("myhealth:", messageObj.myhealth);
-        log.log("enemypositon:", messageObj.enemypositon);
+        log.log("enemyposition:", messageObj.enemyposition);
         log.log("enemyhealth:", messageObj.enemyhealth);
         log.log("barrierActive:", messageObj.barrierActive);
     }
