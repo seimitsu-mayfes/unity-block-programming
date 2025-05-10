@@ -83,64 +83,34 @@ class UnityExtension {
             blockIconURI: blockIconURI,
             blocks: [
                 {
-                    opcode: "moveForward",
-                    blockType: BlockType.COMMAND,
-                    text: "前に [STEP] 進む",
-                    arguments: {
-                        STEP: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 50,
-                        },
-                    },
-                },
-                {
                     opcode: "turnUp",
                     blockType: BlockType.COMMAND,
                     text: "上を向く",
-                    arguments: {
-                        ANGLE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 0,
-                        },
-                    },
                 },
                 {
                     opcode: "turnDown",
                     blockType: BlockType.COMMAND,
                     text: "下を向く",
-                    arguments: {
-                        ANGLE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 180,
-                        },
-                    },
                 },
                 {
                     opcode: "turnRight",
                     blockType: BlockType.COMMAND,
                     text: "右を向く",
-                    arguments: {
-                        ANGLE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 90,
-                        },
-                    },
                 },
                 {
                     opcode: "turnLeft",
                     blockType: BlockType.COMMAND,
                     text: "左を向く",
-                    arguments: {
-                        ANGLE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 270,
-                        },
-                    },
                 },
                 {
-                    opcode: "rotateX",
+                    opcode: "turnForward",
                     blockType: BlockType.COMMAND,
-                    text: "x軸方向に [ANGLE] 度回転",
+                    text: "前を向く",
+                },
+                {
+                    opcode: "rotateXn",
+                    blockType: BlockType.COMMAND,
+                    text: " [ANGLE] 度上に 回転",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
@@ -149,9 +119,9 @@ class UnityExtension {
                     },
                 },
                 {
-                    opcode: "rotateY",
+                    opcode: "rotateXp",
                     blockType: BlockType.COMMAND,
-                    text: "y軸方向に [ANGLE] 度回転",
+                    text: " [ANGLE] 度下に 回転",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
@@ -160,9 +130,9 @@ class UnityExtension {
                     },
                 },
                 {
-                    opcode: "rotateZ",
+                    opcode: "rotateYn",
                     blockType: BlockType.COMMAND,
-                    text: "z軸方向に [ANGLE] 度回転",
+                    text: "[ANGLE] 度左に 回転",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
@@ -171,73 +141,13 @@ class UnityExtension {
                     },
                 },
                 {
-                    opcode: "ifUnity",
-                    blockType: BlockType.CONDITIONAL, // ✅ 条件分岐
-                    text: "もし [CONDITION] なら",
+                    opcode: "rotateYp",
+                    blockType: BlockType.COMMAND,
+                    text: "[ANGLE] 度右に 回転",
                     arguments: {
-                        CONDITION: {
-                            type: ArgumentType.BOOLEAN,
-                            defaultValue: true,
-                        },
-                    },
-                },
-                {
-                    opcode: "isMyHealthGreaterThan",
-                    blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "自分のHP ≧ [VALUE]",
-                    arguments: {
-                        VALUE: {
+                        ANGLE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 100,
-                        },
-                    },
-                },
-                {
-                    opcode: "isMyHealthLessThan",
-                    blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "自分のHP < [VALUE]",
-                    arguments: {
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 100,
-                        },
-                    },
-                },
-                {
-                    opcode: "isEnemysHealthGreaterThan",
-                    blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "敵のHP ≧ [VALUE]",
-                    arguments: {
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 100,
-                        },
-                    },
-                },
-                {
-                    opcode: "isEnemysHealthLessThan",
-                    blockType: BlockType.BOOLEAN, // ✅ Boolean (true/false) を返す
-                    text: "敵のHP < [VALUE]",
-                    arguments: {
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 100,
-                        },
-                    },
-                },
-                {
-                    opcode: "isMyBarrierActive",
-                    blockType: BlockType.BOOLEAN, // ✅ true / false を返す
-                    text: "バリアを展開している",
-                },
-                {
-                    opcode: "isNearby",
-                    blockType: BlockType.BOOLEAN, // ✅ true / false を返す
-                    text: "半径 [VALUE] 以内に敵がいる",
-                    arguments: {
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 100,
+                            defaultValue: 90,
                         },
                     },
                 },
@@ -284,114 +194,75 @@ class UnityExtension {
         };
     }
 
-    moveForward(args) {
-        const step = Cast.toNumber(args.STEP);
-        log.log(`move forward ${step}`);
-        sendMessage({ action: "move", args: step });
-    }
-
     turnUp() {
         log.log("turn Up");
-        sendMessage({ action: "rotate", args: 0 });
+        this.eventQueue.push({
+            Action: "up",
+        });
     }
 
     turnDown() {
         log.log("turn Down");
-        sendMessage({ action: "rotate", args: 180 });
+        this.eventQueue.push({
+            Action: "down",
+        });
     }
 
     turnRight() {
         log.log("turn Right");
-        sendMessage({ action: "rotate", args: 90 });
+        this.eventQueue.push({
+            Action: "right",
+        });
     }
 
     turnLeft() {
         log.log("turn Left");
-        sendMessage({ action: "rotate", args: 270 });
+        this.eventQueue.push({
+            Action: "left",
+        });
     }
 
-    rotateX(args) {
-        const angle = Cast.toNumber(args.ANGLE);
-        log.log(`rotate X ${angle}`);
+    turnForward() {
+        log.log("turn Forward");
         this.eventQueue.push({
-            Action: "rotate_x",
+            Action: "forward",
+        });
+    }
+
+    rotateXn(args) {
+        const angle = Cast.toNumber(args.ANGLE);
+        log.log(`rotate Xn ${angle}`);
+        this.eventQueue.push({
+            Action: "rotate_xn",
             Args: angle
         });
     }
 
-    rotateY(args) {
+    rotateXp(args) {
         const angle = Cast.toNumber(args.ANGLE);
-        log.log(`rotate Y ${angle}`);
+        log.log(`rotate Xp ${angle}`);
         this.eventQueue.push({
-            Action: "rotate_y",
+            Action: "rotate_xp",
             Args: angle
         });
     }
 
-    rotateZ(args) {
+    rotateYn(args) {
         const angle = Cast.toNumber(args.ANGLE);
-        log.log(`rotate Z ${angle}`);
+        log.log(`rotate Yn ${angle}`);
         this.eventQueue.push({
-            Action: "rotate_z",
+            Action: "rotate_yn",
             Args: angle
         });
     }
 
-    ifUnity(args, util) {
-        const condition = Cast.toBoolean(args.CONDITION);
-        console.log(condition); // 条件を表示
-        if (condition) {
-            util.startBranch(1, false);
-        }
-    }
-
-    isMyHealthGreaterThan(args) {
-        const result = messageObj.myhealth >= args.VALUE;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
-    }
-
-    isMyHealthLessThan(args) {
-        const result = messageObj.myhealth < args.VALUE;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
-    }
-
-    isEnemysHealthGreaterThan(args) {
-        const result = messageObj.enemyhealth >= args.VALUE;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
-    }
-
-    isEnemysHealthLessThan(args) {
-        const result = messageObj.enemyhealth < args.VALUE;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
-    }
-
-    isMyBarrierActive() {
-        const result = messageObj.barrierActive;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
-    }
-
-    isNearby(args) {
-        const dx = Math.pow(
-            messageObj.myposition.x - messageObj.enemyposition.x,
-            2
-        );
-        const dy = Math.pow(
-            messageObj.myposition.y - messageObj.enemyposition.y,
-            2
-        );
-        const dz = Math.pow(
-            messageObj.myposition.z - messageObj.enemyposition.z,
-            2
-        );
-        const distance = Math.sqrt(dx + dy + dz);
-        const result = distance <= args.VALUE;
-        console.log(result); // 結果を表示
-        return result; // 結果を返す
+    rotateYp(args) {
+        const angle = Cast.toNumber(args.ANGLE);
+        log.log(`rotate Yp ${angle}`);
+        this.eventQueue.push({
+            Action: "rotate_yp",
+            Args: angle
+        });
     }
 
     splitShot() {
