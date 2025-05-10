@@ -93,14 +93,14 @@ class UnityExtension {
                     text: "下を向く",
                 },
                 {
-                    opcode: "turnRight",
-                    blockType: BlockType.COMMAND,
-                    text: "右を向く",
-                },
-                {
                     opcode: "turnLeft",
                     blockType: BlockType.COMMAND,
                     text: "左を向く",
+                },
+                {
+                    opcode: "turnRight",
+                    blockType: BlockType.COMMAND,
+                    text: "右を向く",
                 },
                 {
                     opcode: "turnForward",
@@ -159,15 +159,11 @@ class UnityExtension {
                 {
                     opcode: "whenEnemyNearby",
                     blockType: BlockType.HAT,
-                    text: "半径 [VALUE] 以内に敵がいたら",
+                    text: "近くに敵がいたら",
                     arguments: {
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 100,
-                        },
                     },
                 },
-                {
+                /*{
                     opcode: "wait",
                     blockType: BlockType.COMMAND,
                     text: " [VALUE] 秒待つ",
@@ -177,7 +173,7 @@ class UnityExtension {
                             defaultValue: 1,
                         },
                     },
-                },
+                },*/
                 {
                     opcode: "sendEvents",
                     blockType: BlockType.COMMAND,
@@ -208,17 +204,17 @@ class UnityExtension {
         });
     }
 
-    turnRight() {
-        log.log("turn Right");
-        this.eventQueue.push({
-            Action: "right",
-        });
-    }
-
     turnLeft() {
         log.log("turn Left");
         this.eventQueue.push({
             Action: "left",
+        });
+    }
+
+    turnRight() {
+        log.log("turn Right");
+        this.eventQueue.push({
+            Action: "right",
         });
     }
 
@@ -274,13 +270,12 @@ class UnityExtension {
 
     // HATブロックで実行される
     whenEnemyNearby(args) {
-        const threshold = parseFloat(args.VALUE);
         // 距離の計算
         const dx = messageObj.myposition.x - messageObj.enemyposition.x;
         const dy = messageObj.myposition.y - messageObj.enemyposition.y;
         const dz = messageObj.myposition.z - messageObj.enemyposition.z;
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        return distance <= threshold;
+        return distance <= 8;
     }
 
     startMonitoringNearby() {
@@ -307,14 +302,14 @@ class UnityExtension {
         }, 17);
     }
 
-    wait(args) {
+    /*wait(args) {
         const second = Cast.toNumber(args.VALUE) * 1000;
         log.log(`wait ${second}`);
         this.eventQueue.push({
             Action: "wait",
             Args: second
         })
-    }
+    }*/
 
     sendEvents() {
         const payload = {
