@@ -14,10 +14,9 @@ const socket = new WebSocket("ws://localhost:8080"); // サーバーへの接続
 
 let messageObj = {
     myposition: { x: 1.0, y: 2.0, z: 3.0 },
-    myhealth: 100,
     enemyposition: { x: 4.0, y: 5.0, z: 6.0 },
-    enemyhealth: 100,
-    barrierActive: false,
+    shieldposition: {x: 1000, y: 1000, z: 1000},
+    shieldradius: 1.0
 };
 
 // WebSocket が開いたときの処理
@@ -36,10 +35,9 @@ socket.onmessage = (event) => {
     try {
         const temp_messageObj = JSON.parse(decodedMessage);
         messageObj.myposition = temp_messageObj.myposition;
-        messageObj.myhealth = temp_messageObj.myhealth;
         messageObj.enemyposition = temp_messageObj.enemyposition;
-        messageObj.enemyhealth = temp_messageObj.enemyhealth;
-        messageObj.barrierActive = temp_messageObj.barrierActive;
+        messageObj.shieldposition = temp_messageObj.shieldposition;
+        messageObj.shieldradius = temp_messageObj.shieldradius;
         console.log("Message from Unity:", temp_messageObj);
     } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -66,6 +64,7 @@ class UnityExtension {
         this.runtime = runtime;
         this.lastTriggered = false;
         this.startMonitoringNearby();
+        this.startMonitoringShieldNearby();
         this.eventQueue = [];
     }
 
@@ -160,6 +159,13 @@ class UnityExtension {
                     opcode: "whenEnemyNearby",
                     blockType: BlockType.HAT,
                     text: "近くに敵がいたら",
+                    arguments: {
+                    },
+                },
+                {
+                    opcode: "whenShieldNearby",
+                    blockType: BlockType.HAT,
+                    text: "前に盾があったら",
                     arguments: {
                     },
                 },
@@ -269,13 +275,22 @@ class UnityExtension {
     }
 
     // HATブロックで実行される
-    whenEnemyNearby(args) {
+    whenEnemyNearby() {
         // 距離の計算
-        const dx = messageObj.myposition.x - messageObj.enemyposition.x;
-        const dy = messageObj.myposition.y - messageObj.enemyposition.y;
-        const dz = messageObj.myposition.z - messageObj.enemyposition.z;
+        const dx = messageObj.enemyposition.x - messageObj.myposition.x;
+        const dy = messageObj.enemyposition.y - messageObj.myposition.y;
+        const dz = messageObj.enemyposition.z - messageObj.myposition.z;
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
         return distance <= 8;
+    }
+
+    whenShieldNearby() {
+        // 距離の計算
+        const dx = messageObj.shieldposition.x - messageObj.myposition.x;
+        const dy = messageObj.shieldposition.y - messageObj.myposition.y;
+        const dz = messageObj.shieldposition.z - messageObj.myposition.z;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance <= messageObj.shieldradius && dz <= 8;
     }
 
     startMonitoringNearby() {
@@ -302,6 +317,31 @@ class UnityExtension {
         }, 17);
     }
 
+    startMonitoringShieldNearby() {
+        setInterval(() => {
+            const hats = this.runtime._hats["unityExtension.whenShieldNearby"];
+            if (!hats) return;
+
+            for (const hat of hats) {
+                const args = hat.block.fields;
+                const threshold = parseFloat(args.VALUE.value); // VALUEスロットの距離値
+
+                // 距離の計算
+                const dx = messageObj.shieldposition.x - messageObj.myposition.x;
+                const dy = messageObj.shieldposition.y - messageObj.myposition.y;
+                const dz = messageObj.shieldposition.z - messageObj.myposition.z;
+                const planarDistance = Math.sqrt(dx * dx + dy * dy);
+
+                // 2D距離とz差の両方を判定
+                if (planarDistance <= threshold && Math.abs(dz) <= 8) {
+                    this.runtime.startHats('unityExtension.whenShieldNearby', {
+                        DISTANCE: threshold
+                    });
+                }
+            }
+        }, 17); // 約60fps相当
+    }
+
     /*wait(args) {
         const second = Cast.toNumber(args.VALUE) * 1000;
         log.log(`wait ${second}`);
@@ -321,10 +361,9 @@ class UnityExtension {
 
     debug() {
         log.log("myposition:", messageObj.myposition);
-        log.log("myhealth:", messageObj.myhealth);
         log.log("enemyposition:", messageObj.enemyposition);
-        log.log("enemyhealth:", messageObj.enemyhealth);
-        log.log("barrierActive:", messageObj.barrierActive);
+        log.log("shieldposition:", messageObj.shieldposition);
+        log.log("shieldradius:", messageObj.shieldradius);
     }
 }
 
