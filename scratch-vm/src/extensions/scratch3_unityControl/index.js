@@ -109,44 +109,44 @@ class UnityExtension {
                 {
                     opcode: "rotateXn",
                     blockType: BlockType.COMMAND,
-                    text: " [ANGLE] 度上に 回転",
+                    text: " 斜め上を向く",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 90,
+                            defaultValue: 45,
                         },
                     },
                 },
                 {
                     opcode: "rotateXp",
                     blockType: BlockType.COMMAND,
-                    text: " [ANGLE] 度下に 回転",
+                    text: " 斜め下を向く",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 90,
+                            defaultValue: 45,
                         },
                     },
                 },
                 {
                     opcode: "rotateYn",
                     blockType: BlockType.COMMAND,
-                    text: "[ANGLE] 度左に 回転",
+                    text: "斜め左を向く",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 90,
+                            defaultValue: 45,
                         },
                     },
                 },
                 {
                     opcode: "rotateYp",
                     blockType: BlockType.COMMAND,
-                    text: "[ANGLE] 度右に 回転",
+                    text: "斜め右を向く",
                     arguments: {
                         ANGLE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 90,
+                            defaultValue: 45,
                         },
                     },
                 },
@@ -155,17 +155,17 @@ class UnityExtension {
                     blockType: BlockType.COMMAND,
                     text: "弾を分裂させる",
                 },
-                {
+                /*{
                     opcode: "whenEnemyNearby",
                     blockType: BlockType.HAT,
-                    text: "近くに敵がいたら",
+                    text: "弾が発射されたら",
                     arguments: {
                     },
-                },
+                },*/
                 {
                     opcode: "whenShieldNearby",
                     blockType: BlockType.HAT,
-                    text: "前に盾があったら",
+                    text: "弾が発射されたら",
                     arguments: {
                     },
                 },
@@ -293,7 +293,7 @@ class UnityExtension {
         return distance <= messageObj.shieldradius && dz <= 8;
     }
 
-    startMonitoringNearby() {
+    /*startMonitoringNearby() {
         setInterval(() => {
             const hats =  this.runtime._hats["unityExtension.whenEnemyNearby"];
             if (!hats) return;
@@ -315,7 +315,7 @@ class UnityExtension {
                 }
             }
         }, 17);
-    }
+    }*/
 
     startMonitoringShieldNearby() {
         setInterval(() => {
