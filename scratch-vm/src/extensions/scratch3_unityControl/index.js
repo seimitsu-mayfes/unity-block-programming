@@ -63,7 +63,7 @@ class UnityExtension {
     constructor(runtime) {
         this.runtime = runtime;
         this.lastTriggered = false;
-        this.startMonitoringNearby();
+        //this.startMonitoringNearby();
         this.startMonitoringShieldNearby();
         this.eventQueue = [];
     }
