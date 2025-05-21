@@ -16,7 +16,8 @@ let messageObj = {
     myposition: { x: 1.0, y: 2.0, z: 3.0 },
     enemyposition: { x: 4.0, y: 5.0, z: 6.0 },
     shieldposition: {x: 1000, y: 1000, z: 1000},
-    shieldradius: 1.0
+    shieldradius: 1.0,
+    viperexist: false
 };
 
 // WebSocket が開いたときの処理
@@ -38,6 +39,7 @@ socket.onmessage = (event) => {
         messageObj.enemyposition = temp_messageObj.enemyposition;
         messageObj.shieldposition = temp_messageObj.shieldposition;
         messageObj.shieldradius = temp_messageObj.shieldradius;
+        messageObj.viperexist = temp_messageObj.viperexist;
         console.log("Message from Unity:", temp_messageObj);
     } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -153,12 +155,12 @@ class UnityExtension {
                 {
                     opcode: "splitShot",
                     blockType: BlockType.COMMAND,
-                    text: "弾を分裂させる",
+                    text: "分裂する",
                 },
                 /*{
                     opcode: "whenEnemyNearby",
                     blockType: BlockType.HAT,
-                    text: "弾が発射されたら",
+                    text: "近くに敵がいたら",
                     arguments: {
                     },
                 },*/
@@ -183,7 +185,7 @@ class UnityExtension {
                 {
                     opcode: "sendEvents",
                     blockType: BlockType.COMMAND,
-                    text: "イベントを送信",
+                    text: "終了",
                     func: "sendEvents"
                 },
                 {
@@ -274,7 +276,7 @@ class UnityExtension {
         });
     }
 
-    // HATブロックで実行される
+    /*// HATブロックで実行される
     whenEnemyNearby() {
         // 距離の計算
         const dx = messageObj.enemyposition.x - messageObj.myposition.x;
@@ -282,15 +284,10 @@ class UnityExtension {
         const dz = messageObj.enemyposition.z - messageObj.myposition.z;
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
         return distance <= 8;
-    }
+    }*/
 
     whenShieldNearby() {
-        // 距離の計算
-        const dx = messageObj.shieldposition.x - messageObj.myposition.x;
-        const dy = messageObj.shieldposition.y - messageObj.myposition.y;
-        const dz = messageObj.shieldposition.z - messageObj.myposition.z;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance <= messageObj.shieldradius && dz <= 8;
+        return messageObj.viperexist;
     }
 
     /*startMonitoringNearby() {
@@ -322,24 +319,11 @@ class UnityExtension {
             const hats = this.runtime._hats["unityExtension.whenShieldNearby"];
             if (!hats) return;
 
-            for (const hat of hats) {
-                const args = hat.block.fields;
-                const threshold = parseFloat(args.VALUE.value); // VALUEスロットの距離値
-
-                // 距離の計算
-                const dx = messageObj.shieldposition.x - messageObj.myposition.x;
-                const dy = messageObj.shieldposition.y - messageObj.myposition.y;
-                const dz = messageObj.shieldposition.z - messageObj.myposition.z;
-                const planarDistance = Math.sqrt(dx * dx + dy * dy);
-
-                // 2D距離とz差の両方を判定
-                if (planarDistance <= threshold && Math.abs(dz) <= 8) {
-                    this.runtime.startHats('unityExtension.whenShieldNearby', {
-                        DISTANCE: threshold
-                    });
-                }
+            // viperexist が true なら HAT を起動
+            if (messageObj.viperexist) {
+                this.runtime.startHats("unityExtension.whenShieldNearby", {});
             }
-        }, 17); // 約60fps相当
+        }, 17); // 約60fpsで監視
     }
 
     /*wait(args) {
@@ -364,6 +348,7 @@ class UnityExtension {
         log.log("enemyposition:", messageObj.enemyposition);
         log.log("shieldposition:", messageObj.shieldposition);
         log.log("shieldradius:", messageObj.shieldradius);
+        log.log("viperexist:", messageObj.viperexist);
     }
 }
 
